@@ -7,7 +7,13 @@ import Loader from "@/components/loader/Loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const SearchPage = ({ params }: { params: { query: string } }) => {
+interface PageProps {
+  params: {
+    query: string;
+  };
+}
+
+const SearchPage = ({ params }: PageProps) => {
   const [decodedQuery, setDecodedQuery] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(
     null

@@ -13,49 +13,43 @@ interface PageProps {
   };
 }
 
+interface SearchResult {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  price: string;
+  address: string;
+  roomCapacity: string;
+  roomType: string;
+  roomSize: string;
+  rating: number;
+  time: string;
+  latitude: number;
+  longitude: number;
+  mapUrl: string;
+}
+
 const SearchPage = ({ params }: PageProps) => {
   const [decodedQuery, setDecodedQuery] = useState<string | null>(null);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(
     null
   );
-
-  useEffect(() => {
-    const unwrapParams = async () => {
-      const unwrappedParams = await params;
-      setDecodedQuery(decodeURIComponent(unwrappedParams.query));
-    };
-
-    unwrapParams();
-  }, [params]);
-
-  const searchParams = decodedQuery ? new URLSearchParams(decodedQuery) : null;
-  const location = searchParams?.get("location");
-  const time = searchParams?.get("time");
-  const space = searchParams?.get("space");
-  const people = searchParams?.get("people");
-
-  interface SearchResult {
-    id: string;
-    title: string;
-    description: string;
-    image: string;
-    price: string;
-    address: string;
-    roomCapacity: string;
-    roomType: string;
-    roomSize: string;
-    rating: number;
-    time: string;
-    latitude: number;
-    longitude: number;
-    mapUrl: string;
-  }
-
-  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setDecodedQuery(decodeURIComponent(params.query));
+  }, [params.query]);
+
+  useEffect(() => {
     if (decodedQuery) {
+      const searchParams = new URLSearchParams(decodedQuery);
+      const location = searchParams.get("location") || "";
+      const time = searchParams.get("time") || "";
+      const space = searchParams.get("space") || "";
+      const people = searchParams.get("people") || "";
+
       const filteredResults = fakeData.filter((item) => {
         return (
           (!location || item.address.includes(location)) &&
@@ -64,13 +58,15 @@ const SearchPage = ({ params }: PageProps) => {
           (!people || item.roomCapacity.includes(people))
         );
       });
-      setResults(filteredResults as SearchResult[]);
+
+      setResults(filteredResults);
       setLoading(false);
-      if (filteredResults.length > 0 && !selectedResult) {
+
+      if (!selectedResult && filteredResults.length > 0) {
         setSelectedResult(filteredResults[0]);
       }
     }
-  }, [decodedQuery, location, time, space, people, selectedResult]);
+  }, [decodedQuery]);
 
   if (loading) {
     return (
@@ -82,6 +78,7 @@ const SearchPage = ({ params }: PageProps) => {
 
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6">
+      {/* Search Filters */}
       <div className="w-full md:w-2/4">
         <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md mb-4">
           <Input
@@ -89,15 +86,13 @@ const SearchPage = ({ params }: PageProps) => {
             placeholder="Tìm kiếm..."
             className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
-          <Button className="ml-2  text-white px-4 py-2 rounded-md  transition">
+          <Button className="ml-2 text-white px-4 py-2 rounded-md transition">
             Lọc
           </Button>
         </div>
 
         <h1 className="text-2xl font-bold mb-4">Kết quả tìm kiếm</h1>
-        <p className="text-gray-500 mb-4">
-          {results.length} kết quả được tìm thấy
-        </p>
+        <p className="text-gray-500 mb-4">{results.length} kết quả được tìm thấy</p>
 
         <div className="grid grid-cols-1 gap-6">
           {results.length > 0 ? (
@@ -141,6 +136,7 @@ const SearchPage = ({ params }: PageProps) => {
         </div>
       </div>
 
+      {/* Map Display */}
       <div className="w-full md:w-2/4 bg-white p-4 rounded-lg shadow-md h-fit sticky top-6">
         <h2 className="text-xl font-bold mb-4">Bản đồ</h2>
         <div className="h-96">
@@ -156,7 +152,7 @@ const SearchPage = ({ params }: PageProps) => {
             ></iframe>
           ) : (
             <img
-              src="https://img.freepik.com/free-vector/no-data-concept-illustration_114360-2506.jpg?t=st=1740509479~exp=1740513079~hmac=fb9232accc15d60c89c3ff49d0501d052507d8d41e7f29e996ddb4a42ad3fabf&w=1380"
+              src="https://img.freepik.com/free-vector/no-data-concept-illustration_114360-2506.jpg"
               alt="No Results Found"
               className="w-full h-full object-cover rounded-lg"
             />
